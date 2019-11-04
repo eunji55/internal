@@ -1,0 +1,288 @@
+﻿<%@ Master Language="C#" AutoEventWireup="true" CodeFile="MasterPage.master.cs" Inherits="MasterPage" %>
+
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8">
+    <title></title>
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no">
+
+    <link rel="shortcut icon" href="img/favicon.png">
+
+    <!-- Bootstrap CSS -->
+    <link href="../css/bootstrap.min.css" rel="stylesheet">
+    <!-- bootstrap theme -->
+    <link href="../css/bootstrap-theme.css" rel="stylesheet">
+    <!--external css-->
+    <!-- font icon -->
+    <link href="../css/elegant-icons-style.css" rel="stylesheet" />
+    <link href="../css/font-awesome.min.css" rel="stylesheet" />
+    <!-- owl carousel -->
+    <link rel="stylesheet" href="../css/owl.carousel.css" type="text/css">
+    <!-- Custom styles -->
+    <link href="../css/style.css" rel="stylesheet">
+    <link href="../css/style-responsive.css" rel="stylesheet" />
+    <link href="../css/xcharts.min.css" rel=" stylesheet">
+    <link href="../css/jquery-ui-1.10.4.min.css" rel="stylesheet">
+
+    <style>
+        input[type="button"][disabled]
+            {
+              color: GrayText;
+              cursor: no-drop;
+              border-color:#ddd;
+              background-color: #ddd;
+              background: #ddd;
+            }
+        body
+            {
+              color: #525252;
+              font-size:17px;
+            }
+    </style>
+
+    <!-- javascripts -->
+    <script src="../js/jquery.js"></script>
+    <script src="../js/jquery-ui-1.10.4.min.js"></script>
+    <script src="../js/jquery-1.8.3.min.js"></script>
+    <!-- bootstrap -->
+    <script src="../js/bootstrap.min.js"></script>
+    <!-- nice scroll -->
+    <script src="../js/jquery.scrollTo.min.js"></script>
+    <script src="../js/jquery.nicescroll.js" type="text/javascript"></script>
+    <!--custome script for all page-->
+    <script src="../js/scripts.js"></script>
+    
+  
+
+  </head>
+
+<body>
+    <form id="form1" runat="server">
+    <!-- container section start -->
+  <section id="container" class="">
+
+
+    <header class="header dark-bg">
+      <div class="toggle-nav">
+        <div class="icon-reorder tooltips" data-original-title="Toggle Navigation" data-placement="bottom"><i class="icon_menu"></i></div>
+      </div>
+
+      <!--logo start-->
+      <a href="../Home.aspx" class="logo" style="color:#00B9AD; font-weight:bold;">Pay<span class="lite" style="color:#00294B; font-weight:bold;">letter Admin.</span>
+      </a>
+      <!--logo end-->
+
+
+      <div class="top-nav notification-row">
+        <!-- notificatoin dropdown start-->
+        <ul class="nav pull-right top-menu">
+          <!-- user login dropdown start-->
+          <li class="dropdown">
+            <a data-toggle="dropdown" class="dropdown-toggle" href="#">
+                            <span class="username"><%=Session["adminId"] %></span>
+                            <b class="caret"></b>
+                        </a>
+            <ul class="dropdown-menu extended logout">
+              <div class="log-arrow-up"></div>
+              <li class="eborder-top">
+              </li>
+              <li>
+                <a id="logout"><i class="icon_key_alt"></i>로그아웃</a>
+              </li>
+            </ul>
+          </li>
+          <!-- user login dropdown end -->
+        </ul>
+        <!-- notificatoin dropdown end-->
+      </div>
+    </header>
+    <!--header end-->
+
+    <!--sidebar start-->
+    <aside>
+      <div id="sidebar" class="nav-collapse ">
+        <!-- sidebar menu start-->
+        <ul class="sidebar-menu">
+
+        </ul>
+        <!-- sidebar menu end-->
+      </div>
+    </aside>
+    <!--sidebar end-->
+      
+
+
+        <asp:ContentPlaceHolder id="ContentPlaceHolder1" runat="server">
+
+        </asp:ContentPlaceHolder>
+
+      </section>
+
+    </form>
+
+    <form name="form2" method="post">
+    <input type="hidden" name="authRangeVal">
+</form>
+
+</body>
+
+    <script type="text/javascript">
+        $(document).ready(function () {
+
+            getAuthMenuList();
+            
+
+            //로그아웃
+            $("#logout").on("click", function () {
+                var reqParam = {};
+                reqParam["strMethod"] = "LogOut";
+
+                $.ajax({
+                    type: "POST",
+                    data: JSON.stringify(reqParam),
+                    url: "/AdminMng/AdminHandler.ashx",
+                    dataType: "JSON",
+                    contentType: "application/json; charset=utf-8",
+                    error: function (request, status, error) {
+                        alert("Ajax Error - code:" + request.status + "\n" + "message:" + request.responseText + "\n" + "error:" + error);
+                    },
+                    success: function () {
+                        alert("로그아웃 되었습니다");
+                        location.href = "../Default.aspx";
+
+                    }
+                })
+
+            });
+
+            
+        });
+
+        //권한 메뉴 목록
+        function getAuthMenuList() {
+            var reqParam = {};
+            reqParam["strMethod"] = "AuthMenuList";
+            reqParam["intAuthNo"] = <%=Session["authNo"] %>
+
+            console.log(reqParam);
+
+            $.ajax({
+                type: "POST",
+                url: "/AdminMng/AdminHandler.ashx",
+                data: JSON.stringify(reqParam),
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                error: function (request, status, error) {
+                    alert("Ajax Error - code:" + request.status + "\n" + "message:" + request.responseText + "\n" + "error:" + error);
+                },
+                success: function (data) {
+
+                    console.log(data);
+
+                    fnAuthMenuList(data);
+                }
+            });
+        }
+
+
+
+        //권한 메뉴 목록 html
+        function fnAuthMenuList(data) {
+
+            var html = "";
+
+            html += "<li class='active'>                           ";
+            html += "<a class='' href='../Home.aspx'>              ";
+            html += "			  <i class='icon_house_alt'></i>   ";
+            html += "			  <span>Home</span>                ";
+            html += "		  </a>                                 ";
+            html += "</li>                                         ";
+
+            for (var i = 0; i < data.objDT.length; i++) {
+
+                if (data.objDT[i].MENUNAME != '게시판') {
+
+                    html += "<li>                                            ";
+                    html += "<a class='menuList' data-ref='" + data.objDT[i].REF + "' data-authrange='" + data.objDT[i].AUTHRANGE + "' style='cursor:pointer;' >    ";
+                    html += "			  <i class='icon_document_alt'></i>  ";
+                    html += "			  <span>" + data.objDT[i].MENUNAME + "관리</span>              ";
+                    html += "		  </a>                                   ";
+                    html += "</li>                                           ";
+                }
+            }
+            $(".sidebar-menu").html(html);
+
+            menuClick();
+
+        }
+
+        function menuClick() {
+
+            $(".menuList").on("click", function () {
+
+                console.log($(this).data("ref"));
+                console.log($(this).data("authrange"));
+
+                var frm = document.form2;
+
+                frm.authRangeVal.value = $(this).data("authrange");
+                frm.action = $(this).data("ref");
+                frm.submit();
+
+            });
+        }
+
+        //페이징
+        function fnPagingList(data, pageNo, pageSize) {
+
+            var pagingHtml = "";
+            pagingHtml += "        <li class='paging' data-pageno='1'><a href='#'><<</a></li>    ";
+
+            var maxPageNo = parseInt((data.intRecordCnt - 1) / pageSize) + 1;
+
+            for (var i = 1; i <= maxPageNo ; i++) {
+
+                if (pageNo == i) {
+                    pagingHtml += "        <li class='paging active' data-pageno='" + i + "'><a href='#'>" + i + "</a></li>              ";
+                }
+                else {
+                    pagingHtml += "        <li class='paging' data-pageno='" + i + "'><a href='#'>" + i + "</a></li>              ";
+                }
+
+            }
+
+            pagingHtml += "        <li class='paging' data-pageno='" + maxPageNo + "'><a href='#'>>></a></li>                           ";
+
+            $("#pagingList").html(pagingHtml);
+
+        }
+
+        function fnAddComma(data) {
+            return Number(data).toLocaleString('en').split(".")[0];
+        }
+
+        function fnRmvComma(data) {
+            data = String(data);
+            return data.replace(/[^\d]+/g, '');
+        }
+
+        function getFormatDate(date) {
+
+            var d = new Date(date), month = '' + (d.getMonth() + 1), day = '' + d.getDate(), year = d.getFullYear();
+            if (month.length < 2) month = '0' + month;
+            if (day.length < 2) day = '0' + day;
+            return [year, month, day].join('-');
+        }
+
+        function getDefaultSearchDate() {
+            var today = new Date();
+            $("#searchToDate").val(getFormatDate(today));
+
+            var beforeMonth = today.setMonth(today.getMonth() - 1);
+            $("#searchFromDate").val(getFormatDate(beforeMonth));
+        }
+
+    </script>
+    
+</html>
